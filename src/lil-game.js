@@ -3,7 +3,7 @@
  */
 
 (function(){
-    angular.module( "lil-game", [ "lil-window", 'lil-pic' ] )
+    angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain' ] )
 
         .factory( "lilGame", function( lilRender, lilWorldBuilder ){
 
@@ -53,12 +53,17 @@
             return new Game();
         })
 
-        .factory( "lilWorldBuilder", function( lilCamera, lilCanvas, lilRender, lilPic, spriteSheets ){
+        .factory( "lilWorldBuilder", function( lilCamera, lilCanvas, lilRender, lilPic, spriteSheets, tileSetManager, tileRenderer ){
             function World(){
                 //whatever... do some tests here
                 lilPic.assign( "sheet", "tilesets/sheet" );
 
-                spriteSheets.assign( "tilesheet", { cw : 8, ch : 8, sw : 64, sh : 16, image : "sheet" } );
+                spriteSheets.assign( "test-sheet", { cw : 8, ch : 8, sw : 64, sh : 16, image : "sheet" } );
+
+                var tileset = tileSetManager.tileSet("test-terrain");
+                tileset.add( { name : "dirt 1", render : "static", data : { index : 0, sheet : "test-sheet" } } );
+                tileset.add( { name : "dirt 2", render : "static", data : { index : 1, sheet : "test-sheet" } } );
+                tileset.add( { name : "dirt 3", render : "static", data : { index : 2, sheet : "test-sheet" } } );
             }
 
             World.prototype.render = function(){
@@ -66,15 +71,21 @@
                     {
                         z : 0,
                         draw : function(){
-                            //var image = lilPic.get( "sheet" );
-                            //lilCanvas.context.drawImage( image, 0, 0, lilCanvas.width, lilCanvas.height );
-                            var sheet = spriteSheets.get("tilesheet");
-                            var c0 = sheet.cell( 0 );
-                            var c1 = sheet.cell( 1 );
-                            lilRender.drawSpriteFromCamera( c0, 0, 0, 1, 1 );
-                            lilRender.drawSpriteFromCamera( c0, 1, 0, 1, 1 );
-                            lilRender.drawSpriteFromCamera( c0, 2, 0, 1, 1 );
-                            lilRender.drawSpriteFromCamera( c1, 0, 1, 1, 1 );
+                            lilCanvas.fillStyle = 'white';
+                            lilCanvas.context.fillRect( 0, 0, lilCanvas.width, lilCanvas.height );
+
+                            var tileset = tileSetManager.get( "test-terrain" );
+
+                            var t1 = tileset.get( 1 );
+                            var t2 = tileset.get( 2 );
+                            var t3 = tileset.get( 3 );
+
+                            tileRenderer.render( t1, 0, 0 );
+                            tileRenderer.render( t1, 1, 0 );
+                            tileRenderer.render( t1, 2, 0 );
+                            tileRenderer.render( t2, 0, 1 );
+
+                            lilCamera.x -= 0.01;
                         }
                     }
                 )

@@ -88,19 +88,19 @@
             this.h = 12.5;
 
             this.x1 = function( paralax ){
-                return ( paralax | 0 ) * this.x;
+                return ( paralax || 1 ) * this.x;
             };
 
             this.x2 = function( paralax ){
-                return ( paralax | 0 ) * this.x + this.w;
+                return ( paralax || 1 ) * this.x + this.w;
             };
 
             this.y1 = function( paralax ){
-                return ( paralax | 0 ) * this.y;
+                return ( paralax || 1 ) * this.y;
             };
 
             this.y2 = function( paralax ){
-                return ( paralax | 0 ) * this.y + this.h;
+                return ( paralax || 1 ) * this.y + this.h;
             };
         }
 
