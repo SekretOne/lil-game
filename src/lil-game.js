@@ -11,15 +11,44 @@
                 var timing = 0;
 
                 var self = this;
-                this.world = lilWorldBuilder.build();  //this isn't right, but we've gone too long without testing things
 
                 var drawId;
+                var preloadTasks = [];
 
+                /**
+                 * Begins the game
+                 */
                 this.start = function(){
+                    this.doPreloadTasks();
+
                     drawId = window.requestAnimationFrame(
                         self.doRenderAndDraw.bind( self )
                     );
                 };
+
+                /**
+                 * Performs the Preload tasks, in order, before startup.
+                 */
+                this.doPreloadTasks = function(){
+                    preloadTasks.forEach( function( task ){
+                        console.log( ":: Preload :: ", task.name );
+                        task.doTask();
+                    })
+                };
+
+                /**
+                 * Adds a Preload task to be performed.
+                 * @param name
+                 * @param func
+                 */
+                this.preload = function( name, func ){
+                    preloadTasks.push( new PreloadTask( name, func ));
+                };
+
+                /**
+                 * This method should be overridden. Probably.
+                 */
+                this.render = function(){};
 
                 this.doRenderAndDraw = function(){
                     timing++;
@@ -45,50 +74,48 @@
                 };
             }
 
-            Game.prototype.render = function( ){
-                //overlay render
-                this.world.render();
-            };
+            /**
+             * Preload Tasks are run before the game starts.
+             * @param name {String} name of the task being run
+             * @param func {Function} that is he actual task.
+             * @constructor
+             */
+            function PreloadTask( name, func ){
+                this.name = name;
+                this.doTask = func;
+            }
 
             return new Game();
         })
 
-        .factory( "lilWorldBuilder", function( lilCamera, lilCanvas, lilRender, lilPic, spriteSheets, tileSetManager, tileRenderer ){
+        .factory( "lilWorldBuilder", function( lilCamera, lilCanvas, lilRender, lilPic, spriteSheets, tileSetManager ){
             function World(){
-                //whatever... do some tests here
-                lilPic.assign( "sheet", "tilesets/sheet" );
-
-                spriteSheets.assign( "test-sheet", { cw : 8, ch : 8, sw : 64, sh : 16, image : "sheet" } );
-
-                var tileset = tileSetManager.tileSet("test-terrain");
-                tileset.add( { name : "dirt 1", render : "static", data : { index : 0, sheet : "test-sheet" } } );
-                tileset.add( { name : "dirt 2", render : "static", data : { index : 1, sheet : "test-sheet" } } );
-                tileset.add( { name : "dirt 3", render : "static", data : { index : 2, sheet : "test-sheet" } } );
             }
 
             World.prototype.render = function(){
-                lilRender.add(
-                    {
-                        z : 0,
-                        draw : function(){
-                            lilCanvas.fillStyle = 'white';
-                            lilCanvas.context.fillRect( 0, 0, lilCanvas.width, lilCanvas.height );
 
-                            var tileset = tileSetManager.get( "test-terrain" );
+                var map = tileSetManager.tileMap();
+                map.w = 8;
+                map.h= 6;
+                map.tileSet = "test-terrain";
+                map.tileData = [
+                    0, 0, 4, 5, 0, 0, 0, 6,
+                    0, 0, 1, 1, 8, 9, 10, 1,
+                    3, 1, 1, 1, 1, 1, 1, 2,
+                    0, 0, 1, 1, 1, 1, 1, 2,
+                    0, 0, 1, 1, 1, 1, 2, 0,
+                    0, 0, 1, 1, 1, 1, 2, 0
+                ];
 
-                            var t1 = tileset.get( 1 );
-                            var t2 = tileset.get( 2 );
-                            var t3 = tileset.get( 3 );
-
-                            tileRenderer.render( t1, 0, 0 );
-                            tileRenderer.render( t1, 1, 0 );
-                            tileRenderer.render( t1, 2, 0 );
-                            tileRenderer.render( t2, 0, 1 );
-
-                            lilCamera.x -= 0.01;
+                lilRender.add({
+                    z: 0,
+                    draw: function () {
+                        lilCanvas.fillStyle = 'white';
+                        lilCanvas.context.fillRect(0, 0, lilCanvas.width, lilCanvas.height);
                         }
                     }
-                )
+                );
+                lilRender.add( map );
             };
 
             function WorldBuilder(){

@@ -4,7 +4,7 @@
 
 (function(){
     angular.module( "lil-terrain", [ 'lil-pic' ])
-        .factory( "tileSetManager", function( lilPic ){
+        .factory( "tileSetManager", function( lilCamera, tileRenderer ){
             var _tileSets = {};
 
             var VOID_TILE = new Tile({
@@ -24,7 +24,11 @@
             }
 
             function getTileSet( name ){
-                return _tileSets[ name ];
+                var tileSet = _tileSets[ name ];
+                if( !tileSet ){
+                    throw "TileSet of name:'" + name +"' not recognized"
+                }
+                return tileSet;
             }
 
             /**
@@ -36,19 +40,41 @@
 
                 this.w = 0;
                 this.h = 0;
+                this.z = 0;
 
                 this.tileData = [];
 
                 this.paralaxX = 1;
                 this.paralaxY = 1;
 
-                this.getTileData = function( x, y ){
+                this.tile = function( x, y ){
                     if( x < 0 || y < 0 || x >= this.w || y >= this.h ){
                         return VOID_TILE;
                     }
                     else{
                         var index = y * this.w + x;
-                        return this.tileData[ index ];
+                        var tileSet = getTileSet( this.tileSet );
+                        var tileIndex = this.tileData[ index ];
+                        return tileSet.get( tileIndex );
+                    }
+                };
+
+                this.draw = function( ){
+                    var x1, x2, y1, y2,
+                        tileSet;
+
+                    x1 = lilCamera.x1();
+                    x2 = lilCamera.x2();
+                    y1 = lilCamera.y1();
+                    y2 = lilCamera.y2();
+
+                    tileSet = getTileSet( this.tileSet );
+
+                    for( var i = Math.floor( x1 ); i < x2; i++ ){
+                        for( var j = Math.floor( y1 ); j < y2; j++ ){
+                            var tile = this.tile( i, j );
+                            tileRenderer.render( tile, i, j );
+                        }
                     }
                 }
             }
@@ -99,6 +125,7 @@
             function TileSetManager(){
                 this.tileSet = buildTileSet;
                 this.get = getTileSet;
+                this.tileMap = function(){ return new TileMap() };
 
                 this.void = VOID_TILE;
                 this.air = AIR_TILE;
