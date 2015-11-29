@@ -5,7 +5,7 @@
 (function(){
     angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain' ] )
 
-        .factory( "lilGame", function( lilRender, lilWorldBuilder ){
+        .factory( "lilGame", function( lilRender, lilCamera, $timeout, lilControl ){
 
             function Game(){
                 var timing = 0;
@@ -15,26 +15,45 @@
                 var drawId;
                 var preloadTasks = [];
 
+                var _preloadTaskCounter = 0;
+
+                function actuallyStart(){
+                    drawId = window.requestAnimationFrame(
+                        self.doRenderAndDraw.bind( self )
+                    );
+                }
+
                 /**
                  * Begins the game
                  */
                 this.start = function(){
-                    this.doPreloadTasks();
+                    doPreloadTasks();
 
-                    drawId = window.requestAnimationFrame(
-                        self.doRenderAndDraw.bind( self )
-                    );
+                    //actuallyStart();
                 };
 
                 /**
                  * Performs the Preload tasks, in order, before startup.
                  */
-                this.doPreloadTasks = function(){
-                    preloadTasks.forEach( function( task ){
+                 function doPreloadTasks(){
+                    /*preloadTasks.forEach( function( task ){
                         console.log( ":: Preload :: ", task.name );
                         task.doTask();
-                    })
-                };
+                    });*/
+
+                    $timeout( function(){
+                        //or should it be like this?
+                        if( _preloadTaskCounter == preloadTasks.length ){
+                            actuallyStart();
+                        }
+                        else{
+                            var task = preloadTasks[ _preloadTaskCounter ];
+                            console.log( ":: Preload :: ", task.name );
+                            task.doTask( doPreloadTasks );
+                            _preloadTaskCounter++;
+                        }
+                    });
+                }
 
                 /**
                  * Adds a Preload task to be performed.
@@ -68,6 +87,7 @@
                     );
 
                     if( timing == 100 ){
+                        console.log( "camera", lilCamera.x1(), lilCamera.y1() );
                         timing = 0;
                         console.log( "Render and Draw", after-before );
                     }
@@ -88,35 +108,63 @@
             return new Game();
         })
 
-        .factory( "lilWorldBuilder", function( lilCamera, lilCanvas, lilRender, lilPic, spriteSheets, tileSetManager ){
-            function World(){
+        .factory( "lilControl", function( lilCamera, $interval ){
+            var keyBindings = {
+                left : false,
+                up : false,
+                right : false,
+                down : false
+            };
+            console.log("BUILDING LIL CONTROL");
+
+            document.addEventListener('keydown', function(event) {
+                if(event.keyCode == 37) {
+                    keyBindings.left = true;
+                }
+                else if(event.keyCode == 38) {
+                    keyBindings.up = true;
+                }
+                else if(event.keyCode == 39) {
+                    keyBindings.right = true;
+                }
+                else if(event.keyCode == 40) {
+                    keyBindings.down = true;
+                }
+            });
+
+            document.addEventListener('keyup', function(event) {
+                if(event.keyCode == 37) {
+                    keyBindings.left = false;
+                }
+                else if(event.keyCode == 38) {
+                    keyBindings.up = false;
+                }
+                else if(event.keyCode == 39) {
+                    keyBindings.right = false;
+                }
+                else if(event.keyCode == 40) {
+                    keyBindings.down = false;
+                }
+            });
+
+            function controlByKeyboard(){
+                var scrollRate = .03;
+                var sy = (keyBindings.up  ? -1: 0) + (keyBindings.down ? 1 : 0 );
+                var sx = (keyBindings.left  ? -1 : 0) + (keyBindings.right ? 1 : 0 );
+
+                lilCamera.x += sx * scrollRate;
+                lilCamera.y += sy * scrollRate;
             }
 
-            World.prototype.render = function(){
+            $interval( controlByKeyboard, 15 );
 
-                var map = tileSetManager.tileMap();
-                map.w = 8;
-                map.h= 6;
-                map.tileSet = "test-terrain";
-                map.tileData = [
-                    0, 0, 4, 5, 0, 0, 0, 6,
-                    0, 0, 1, 1, 8, 9, 10, 1,
-                    3, 1, 1, 1, 1, 1, 1, 2,
-                    0, 0, 1, 1, 1, 1, 1, 2,
-                    0, 0, 1, 1, 1, 1, 2, 0,
-                    0, 0, 1, 1, 1, 1, 2, 0
-                ];
+            return {};
+        })
 
-                lilRender.add({
-                    z: 0,
-                    draw: function () {
-                        lilCanvas.fillStyle = 'white';
-                        lilCanvas.context.fillRect(0, 0, lilCanvas.width, lilCanvas.height);
-                        }
-                    }
-                );
-                lilRender.add( map );
-            };
+        .factory( "lilWorldBuilder", function( ){
+            function World(){
+                this.render = function(){};
+            }
 
             function WorldBuilder(){
                 this.build = function(){

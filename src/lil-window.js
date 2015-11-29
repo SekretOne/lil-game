@@ -102,6 +102,10 @@
             this.y2 = function( paralax ){
                 return ( paralax || 1 ) * this.y + this.h;
             };
+
+            this.focus = function(){
+
+            }
         }
 
         return new Camera();
@@ -110,8 +114,8 @@
     lilwindow.factory( "lilCanvas", function(){
         function LilCanvas2() {
 
-            this.width = 1280;
-            this.height = 800;
+            this.width = 800;
+            this.height = 500;
             this.canvas = null;
 
             /**

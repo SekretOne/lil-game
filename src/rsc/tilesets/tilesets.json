@@ -1,0 +1,97 @@
+{
+  "tileSets" : [
+    {
+      "name" : "test-terrain",
+      "tiles" : [
+        {
+          "name": "dirt 1",
+          "render": "static",
+          "data": {
+            "index": 0,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt 2",
+          "render": "static",
+          "data": {
+            "index": 1,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt 3",
+          "render": "static",
+          "data": {
+            "index": 2,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "grass 1",
+          "render": "static",
+          "data": {
+            "index": 3,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "grass 2",
+          "render": "static",
+          "data": {
+            "index": 4,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope up 1",
+          "render": "static",
+          "data": {
+            "index": 5,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope down 1",
+          "render": "static",
+          "data": {
+            "index": 6,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope up 0 to .5",
+          "render": "static",
+          "data": {
+            "index": 6,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope up .5 to 1",
+          "render": "static",
+          "data": {
+            "index": 7,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope up 0 to .75",
+          "render": "static",
+          "data": {
+            "index": 8,
+            "sheet": "test-sheet"
+          }
+        },
+        {
+          "name": "dirt slope up .75 to 1",
+          "render": "static",
+          "data": {
+            "index": 9,
+            "sheet": "test-sheet"
+          }
+        }
+      ]
+    }
+  ]
+}
