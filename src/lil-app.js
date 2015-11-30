@@ -26,20 +26,6 @@
         game.preload( "Create World", function( next ){
             game.world = lilWorldBuilder.build();
 
-            var map = tileSetManager.tileMap();
-            map.w = 8;
-            map.h= 6;
-            map.tileSet = "test-terrain";
-            map.tileData = [
-                0, 0, 4, 5, 0, 0, 0, 6,
-                0, 0, 1, 1, 8, 9, 10, 1,
-                3, 1, 1, 1, 1, 1, 1, 2,
-                0, 0, 1, 1, 1, 1, 1, 2,
-                0, 0, 1, 1, 1, 1, 2, 0,
-                0, 0, 1, 1, 1, 1, 2, 0
-            ];
-
-            game.world.fg = map;
             game.world.render = function(){
                 lilRender.add({
                         z: -1,
@@ -49,14 +35,35 @@
                         }
                     }
                 );
-                lilRender.add( game.world.fg );
+                for( var mapName in game.world.maps ){
+                    lilRender.add( game.world.maps[mapName] );
+                }
             };
 
             game.render = function(){
                 this.world.render();
             };
 
-            next();
+            $http.get("src/rsc/levels/level-0.json").then( function( response ){
+                var levelData = response.data;
+
+                game.world.name = levelData.name;
+                game.world.description = levelData.description;
+
+                console.log(levelData );
+
+                levelData.maps.forEach( function( mapData ){
+                    var map = tileSetManager.tileMap();
+                    game.world.maps[ mapData.layer ] = map ;
+
+                    map.w = mapData.w;
+                    map.h = mapData.h;
+                    map.tileSet = mapData.tileSet;
+                    map.tileData = mapData.tileData;
+                });
+
+                next();
+            });
         });
 
         game.preload( "Define images", function( next ){

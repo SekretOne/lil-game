@@ -164,6 +164,8 @@
         .factory( "lilWorldBuilder", function( ){
             function World(){
                 this.render = function(){};
+
+                this.maps = {};
             }
 
             function WorldBuilder(){
