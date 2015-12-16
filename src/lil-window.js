@@ -5,6 +5,13 @@
 (function( window ) {
     var lilwindow = angular.module("lil-window", []);
 
+    lilwindow.constant( "lilWinConfig", {
+        canvasWidth :   800,
+        canvasHeight :  500,
+        tilesWide :     20,
+        tilesHigh :     12.5
+    });
+
     lilwindow.service( "lilRender", function( lilCamera, lilCanvas ){
         var renders = [];
 
@@ -76,7 +83,7 @@
         }
     });
 
-    lilwindow.factory( "lilCamera", function(){
+    lilwindow.factory( "lilCamera", function( lilWinConfig ){
 
         var boundsBehavior = 'none';
 
@@ -84,8 +91,8 @@
 
             this.x = 0;
             this.y = 0;
-            this.w = 20;
-            this.h = 12.5;
+            this.w = lilWinConfig.tilesWide;
+            this.h = lilWinConfig.tilesHigh;
 
             this.x1 = function( paralax ){
                 return ( paralax || 1 ) * this.x;
@@ -105,17 +112,21 @@
 
             this.focus = function(){
 
+            };
+
+            this.offScreen = function( x, y, w, h ){
+                return ( x + w < this.x1() || x > this.x2() ) || ( y + h < this.y1() || y > this.y2() );
             }
         }
 
         return new Camera();
     });
 
-    lilwindow.factory( "lilCanvas", function(){
+    lilwindow.factory( "lilCanvas", function( lilWinConfig ){
         function LilCanvas2() {
 
-            this.width = 800;
-            this.height = 500;
+            this.width = lilWinConfig.canvasWidth;
+            this.height = lilWinConfig.canvasHeight;
             this.canvas = null;
 
             /**

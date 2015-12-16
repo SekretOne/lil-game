@@ -4,8 +4,8 @@
 
   "maps" : [
     {
-      "z" : 0,
       "layer" : "fg",
+      "z" : 0,
       "w" : 30,
       "h" : 20,
       "tileSet" : "test-terrain",

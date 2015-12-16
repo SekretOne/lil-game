@@ -4,24 +4,30 @@
 (function(){
     angular.module( "lil-pic", [] )
 
-        .service( "lilPic", function(){
+        .constant( "lilRootDir", "src/rsc/")
+        .constant( "imageType", "png" )
+
+        .factory( "lilPic", function( lilRootDir, imageType ){
+
             var cache = {}; //the actual images, once loaded.
             var map = {};   //the mapping of where to get an image, should in not be loaded. Puts it in the cache when loaded.
 
-            this.assign = function( key, location ){
-                map[ key ] = location;
-            };
-
-            this.get = function( key ){
-                if( cache[key] == undefined ){
-                    var image = new Image();
-                    var location = map[key];
-                    image.src = 'src/rsc/' + location + '.png';
-                    cache[key] = image;
-                    return image;
+            return function( key, location ){
+                if( arguments.length == 2 ){
+                    //if 2 args, assign
+                    map[ key ] = location;
                 }
-                return cache[key];
-            };
+                else{
+                    if( cache[key] == undefined ){
+                        var image = new Image();
+                        var loc = map[key];
+                        image.src = lilRootDir + loc + "." + imageType;
+                        cache[key] = image;
+                        return image;
+                    }
+                    return cache[key];
+                }
+            }
         })
 
         .service( "spriteSheets", function( lilPic ){
@@ -36,12 +42,7 @@
                 this.cells = [];
 
                 if( opts != null ){
-                    for( var prop in opts ){
-                        if( opts.hasOwnProperty( prop )){
-                            console.log( "setting property: ", prop, opts[prop] );
-                            this[prop] = opts[prop];
-                        }
-                    }
+                    angular.extend( this, opts );
                 }
 
                 var totalWidth = this.sw;
@@ -96,7 +97,7 @@
             }
 
             SheetCell.prototype.image = function(){
-                return lilPic.get( this.name );
+                return lilPic( this.name );
             }
         })
     ;

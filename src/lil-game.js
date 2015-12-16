@@ -3,12 +3,15 @@
  */
 
 (function(){
-    angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain' ] )
+    angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain', "lil-sprite" ] )
 
-        .factory( "lilGame", function( lilRender, lilCamera, $timeout, lilControl ){
+        .factory( "lilGame", function( lilRender, lilCamera, $timeout, $interval, lilControl ){
 
             function Game(){
                 var timing = 0;
+
+                this.updatesPerSecond = 50;
+                this.msPerUpdate = 1000 / this.updatesPerSecond;
 
                 var self = this;
 
@@ -21,25 +24,25 @@
                     drawId = window.requestAnimationFrame(
                         self.doRenderAndDraw.bind( self )
                     );
+
+                    $interval( self.update.bind( self ), self.msPerUpdate );
                 }
+
+                this.update = function(){
+
+                };
 
                 /**
                  * Begins the game
                  */
                 this.start = function(){
                     doPreloadTasks();
-
-                    //actuallyStart();
                 };
 
                 /**
                  * Performs the Preload tasks, in order, before startup.
                  */
                  function doPreloadTasks(){
-                    /*preloadTasks.forEach( function( task ){
-                        console.log( ":: Preload :: ", task.name );
-                        task.doTask();
-                    });*/
 
                     $timeout( function(){
                         //or should it be like this?
@@ -148,7 +151,7 @@
             });
 
             function controlByKeyboard(){
-                var scrollRate = .03;
+                var scrollRate = .05;
                 var sy = (keyBindings.up  ? -1: 0) + (keyBindings.down ? 1 : 0 );
                 var sx = (keyBindings.left  ? -1 : 0) + (keyBindings.right ? 1 : 0 );
 
