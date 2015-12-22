@@ -5,7 +5,7 @@
 (function(){
     angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain', "lil-sprite" ] )
 
-        .factory( "lilGame", function( lilRender, lilCamera, $timeout, $interval, lilControl ){
+        .factory( "lilGame", function( lilRender, lilCamera, $timeout, $interval, $http, lilControl ){
 
             function Game(){
                 var timing = 0;
@@ -67,6 +67,15 @@
                     preloadTasks.push( new PreloadTask( name, func ));
                 };
 
+                this.get = function( resource, func ){
+                    preloadTasks.push( new PreloadTask( "load resource: " + resource, function( next ){
+                        $http.get( resource).then( function( response ){
+                            func( response.data );
+                            next();
+                        })
+                    }));
+                };
+
                 /**
                  * This method should be overridden. Probably.
                  */
@@ -118,49 +127,44 @@
                 right : false,
                 down : false
             };
+
+            var bindings = {
+                left : 37,
+                up : 38,
+                right : 39,
+                down : 40
+            };
             console.log("BUILDING LIL CONTROL");
 
             document.addEventListener('keydown', function(event) {
-                if(event.keyCode == 37) {
+                if(event.keyCode == bindings.left) {
                     keyBindings.left = true;
                 }
-                else if(event.keyCode == 38) {
+                else if(event.keyCode == bindings.up) {
                     keyBindings.up = true;
                 }
-                else if(event.keyCode == 39) {
+                else if(event.keyCode == bindings.right ) {
                     keyBindings.right = true;
                 }
-                else if(event.keyCode == 40) {
+                else if(event.keyCode == bindings.down ) {
                     keyBindings.down = true;
                 }
             });
 
             document.addEventListener('keyup', function(event) {
-                if(event.keyCode == 37) {
+                if(event.keyCode == bindings.left) {
                     keyBindings.left = false;
                 }
-                else if(event.keyCode == 38) {
+                else if(event.keyCode == bindings.up) {
                     keyBindings.up = false;
                 }
-                else if(event.keyCode == 39) {
+                else if(event.keyCode == bindings.right) {
                     keyBindings.right = false;
                 }
-                else if(event.keyCode == 40) {
+                else if(event.keyCode == bindings.down) {
                     keyBindings.down = false;
                 }
             });
-
-            function controlByKeyboard(){
-                var scrollRate = .05;
-                var sy = (keyBindings.up  ? -1: 0) + (keyBindings.down ? 1 : 0 );
-                var sx = (keyBindings.left  ? -1 : 0) + (keyBindings.right ? 1 : 0 );
-
-                lilCamera.x += sx * scrollRate;
-                lilCamera.y += sy * scrollRate;
-            }
-
-            $interval( controlByKeyboard, 15 );
-
             return {};
         })
 

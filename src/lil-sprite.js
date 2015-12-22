@@ -15,11 +15,71 @@
             this.y = 0;
             this.z = 1;
             this.w = 1;
-            this.y = 1;
+            this.h = 1;
+
+            this.mx = 0;  // movement speed, per second
+            this.my = 0;  //
+            this.speed = 0;
+            this.jumpheight = 0;
+            this.grounded = false;
+
             this.current = "none";
             this.duration = 0;  //duration it's been in this animation
             this.frame = 0;     //which frame it currently is in
+            this.model = "none";
+        }
 
+        Sprite.prototype.getModel = function(){
+            return modelMap[ this.model ];
+        };
+
+        Sprite.prototype.animation = function( name ){
+            return this.getModel()
+                .animations[ name ];
+        };
+
+        Sprite.prototype.getAnimation = function(){
+            return this.getModel()
+                .animations[ this.current ];
+        };
+
+        Sprite.prototype.getFrame = function(){
+            return this.getAnimation()
+                .frames[ this.frame ];
+        };
+
+        Sprite.prototype.draw = function(){
+            var cell = this.getFrame()
+                .cell();
+            lilRender.drawSpriteFromCamera( cell, this.x, this.y, this.w, this.h );
+        };
+
+        Sprite.prototype.update = function( rtms ){
+            this.getAnimation()
+                .progressAnimation( this, rtms );
+        };
+
+        Sprite.prototype.clear = function(  ){
+            this.x = 0;
+            this.y = 0;
+            this.z = 1;
+            this.w = 1;
+            this.h = 1;
+            this.mx = 0;
+            this.my = 0;
+            this.current = "none";
+            this.duration = 0;  //duration it's been in this animation
+            this.frame = 0;     //which frame it currently is in
+            this.model = "none";
+        };
+
+        /**
+         * The Model a sprite uses. Basically a collection of animations, and how it accesses them.
+         * @param opts
+         * @constructor
+         */
+        function SpriteModel( opts ){
+            this.name = "unnamed";
             this.animations = {};
 
             //set options and complicated members
@@ -37,28 +97,10 @@
             }
         }
 
-        Sprite.prototype.animation = function( name ){
-            return this.animations[ name ];
+        var modelMap = {
+            none : new Sprite()
         };
 
-        Sprite.prototype.currentAnimation = function(){
-            return this.animation( this.current );
-        };
-
-        Sprite.prototype.currentFrame = function(){
-            var animation = this.animations[ this.current ];
-            return animation.frames[ this.frame ];
-        };
-
-        Sprite.prototype.draw = function(){
-            var cell = this.currentFrame().cell();
-            lilRender.drawSpriteFromCamera( cell, this.x, this.y, this.w, this.h );
-        };
-
-        Sprite.prototype.update = function( rtms ){
-            this.currentAnimation()
-                .progressAnimation( this, rtms );
-        };
 
         function Animation( opts ){
             this.name = "untitled";
@@ -81,7 +123,7 @@
 
         Animation.prototype.progressAnimation = function( sprite, rtms ){
             var method = lilProgress( this.progressMethod );
-            method( sprite, sprite.currentAnimation(), rtms );
+            method( sprite, sprite.getAnimation(), rtms );
         };
 
         /**
@@ -113,12 +155,29 @@
                 .cell( this.cellNumber );
         };
 
-        return function( opts ){
-            return new Sprite( opts );
+        function registerSpriteModel( opts ){
+            var spriteDef = new SpriteModel( opts );
+            var name = spriteDef.name;
+
+            if( modelMap[ name ]){
+                throw "SpriteModel " + name + " already exists"
+            }
+            modelMap[name] = spriteDef;
+        }
+
+        function buildSprite( ){
+            return new Sprite();
+        }
+
+        return {
+            build : buildSprite,
+            model : registerSpriteModel
         }
     });
 
-
+    /**
+     * Registers or returns the animation progression method
+     */
     module.factory( "lilProgress", function(){
         var methods = {
             //has no animation, or visuals
@@ -127,7 +186,7 @@
             //linear progress, real time equating to animation time
             "linear" : function( sprite, animation, ms ){
                 var duration = sprite.duration += ms;
-                var frame = sprite.currentFrame();
+                var frame = sprite.getFrame();
                 var frameIndex = sprite.frame;
                 while( duration > frame.duration ){
                     duration -= frame.duration;

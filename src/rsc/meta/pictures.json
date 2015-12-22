@@ -1,0 +1,31 @@
+{
+  "images" : [
+    {
+      "name" : "sheet",
+      "src" : "tilesets/sheet"
+    },
+    {
+      "name" : "pauper",
+      "src" : "pauper"
+    }
+  ],
+
+  "sheets" : [
+    {
+      "name" : "test-sheet",
+      "cw" : 8,
+      "ch" : 8,
+      "sw" : 64,
+      "sh" : 16,
+      "image" : "sheet"
+    },
+    {
+      "name" : "pauper",
+      "cw" : 16,
+      "ch" : 16,
+      "sw" : 192,
+      "sh" : 16,
+      "image" : "pauper"
+    }
+  ]
+}

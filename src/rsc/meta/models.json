@@ -1,0 +1,51 @@
+{
+  "models" : [
+    {
+      "name" : "pauper",
+      "w" : 2,
+      "h" : -2,
+
+      "animations" : [
+        {
+          "name" : "idle",
+          "progressMethod" : "none",
+          "frames" : [
+            {
+              "sheet" : "pauper"
+            }
+          ]
+        },
+        {
+          "name" : "walk",
+          "progressMethod" : "linear",
+          "frames" : [
+            {
+              "sheet" : "pauper",
+              "cell" : 0,
+              "duration" : 100,
+              "next" : 1
+            },
+            {
+              "sheet" : "pauper",
+              "cell" : 1,
+              "duration" : 100,
+              "next" : 2
+            },
+            {
+              "sheet" : "pauper",
+              "cell" : 2,
+              "duration" : 100,
+              "next" : 3
+            },
+            {
+              "sheet" : "pauper",
+              "cell" : 3,
+              "duration" : 100,
+              "next" : 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

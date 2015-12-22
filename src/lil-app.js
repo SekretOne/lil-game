@@ -21,71 +21,27 @@
     app.factory( "testGame", function( lilGame, lilWorldBuilder, lilPic, tileSetManager, spriteSheets, lilRender, lilCanvas, lilCamera, $http, lilSprite ){
         var game = lilGame;
 
-        var testSprite = {
-            name : "pauper",
-            w : 2,
-            h : -2,
-
-            animations : [
-                {
-                    name : "idle",
-                    progressMethod : "none",
-                    frames : [
-                        {
-                            sheet : "pauper"
-                        }
-                    ]
-                },
-                {
-                    name : "walk",
-                    progressMethod : "linear",
-                    frames : [
-                        {
-                            sheet : "pauper",
-                            cell : 0,
-                            duration : 100,
-                            next : 1
-                        },
-                        {
-                            sheet : "pauper",
-                            cell : 1,
-                            duration : 100,
-                            next : 2
-                        },
-                        {
-                            sheet : "pauper",
-                            cell : 2,
-                            duration : 100,
-                            next : 3
-                        },
-                        {
-                            sheet : "pauper",
-                            cell : 3,
-                            duration : 100,
-                            next : 0
-                        }
-                    ]
-                }
-            ]
-        };
-
-        var sprite = lilSprite( testSprite );
+        var sprite = lilSprite.build();
         sprite.x = 2;
         sprite.y = 2;
+        sprite.w = 2;
+        sprite.h = -2;
         sprite.current = "walk";
+        sprite.model = "pauper";
+
+        var backdrop = {
+            z: -1,
+            draw: function () {
+                lilCanvas.fillStyle = 'black';
+                lilCanvas.context.fillRect(0, 0, lilCanvas.width, lilCanvas.height);
+            }
+        };
 
         game.preload( "Create World", function( next ){
             game.world = lilWorldBuilder.build();
 
             game.world.render = function(){
-                lilRender.add({
-                        z: -1,
-                        draw: function () {
-                            lilCanvas.fillStyle = 'black';
-                            lilCanvas.context.fillRect(0, 0, lilCanvas.width, lilCanvas.height);
-                        }
-                    }
-                );
+                lilRender.add( backdrop );
                 for( var mapName in game.world.maps ){
                     lilRender.add( game.world.maps[mapName] );
                 }
@@ -100,38 +56,45 @@
                 sprite.update( lilGame.msPerUpdate );
             };
 
-            $http.get("src/rsc/levels/level-0.json").then( function( response ){
-                var levelData = response.data;
+            next();
+        });
 
-                game.world.name = levelData.name;
-                game.world.description = levelData.description;
 
-                console.log(levelData );
+        game.get( "src/rsc/levels/level-0.json", function( data ){
+            var levelData = data;
 
-                levelData.maps.forEach( function( mapData ){
-                    var map = tileSetManager.tileMap();
-                    game.world.maps[ mapData.layer ] = map ;
+            game.world.name = levelData.name;
+            game.world.description = levelData.description;
 
-                    map.w = mapData.w;
-                    map.h = mapData.h;
-                    map.tileSet = mapData.tileSet;
-                    map.tileData = mapData.tileData;
-                });
+            console.log(levelData );
 
-                next();
+            levelData.maps.forEach( function( mapData ){
+                var map = tileSetManager.tileMap();
+                game.world.maps[ mapData.layer ] = map ;
+
+                map.w = mapData.w;
+                map.h = mapData.h;
+                map.tileSet = mapData.tileSet;
+                map.tileData = mapData.tileData;
             });
         });
 
-        game.preload( "Define images", function( next ){
-            lilPic( "sheet", "tilesets/sheet" );
-            lilPic( "pauper", "pauper");
-            next();
+        game.get( "src/rsc/meta/models.json", function( data){
+
+           data.models.forEach( function( spriteData ){
+               lilSprite.model( spriteData );
+           })
         });
 
-        game.preload( "Define tileSheets", function( next ){
-            spriteSheets.assign( "test-sheet", { cw : 8, ch : 8, sw : 64, sh : 16, image : "sheet" } );
-            spriteSheets.assign( "pauper", { cw : 16, ch : 16, sw : 192, sh : 16, image : "pauper" });
-            next();
+        game.get( "src/rsc/meta/pictures.json", function( data ){
+            for( var i = 0; i < data.images.length; i++ ){
+                var picData = data.images[i];
+                lilPic( picData.name, picData.src );
+            }
+
+            for( i = 0; i < data.sheets.length; i++ ){
+                spriteSheets.assign( data.sheets[i].name, data.sheets[i] );
+            }
         });
 
         game.preload( "Create Tile Sets", function( next ){
