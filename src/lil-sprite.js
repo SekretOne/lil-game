@@ -55,7 +55,7 @@
 
             var cell = this.getFrame()
                 .cell();
-            lilRender.drawSpriteCenteredFromCamera( cell, this.x + (i/20), this.y, this.w, this.h, this.flip );
+            lilRender.drawSpriteCenteredFromCamera( cell, this.x, this.y, this.w, this.h, this.flip );
 
         };
 
