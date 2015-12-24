@@ -2,9 +2,9 @@
  * Created by Nathan on 9/7/2015.
  */
 (function(){
-    var module = angular.module( "lil-sprite", ["lil-pic", "lil-window"] );
+    var module = angular.module( "lil-sprite", ["lil-pic", "lil-window", "lil-core" ] );
 
-    module.factory( "lilSprite", function( lilProgress, spriteSheets, lilRender ){
+    module.factory( "lilSprite", function( lilModels, lilRender, lilControl, lilAnimator ){
 
         /**
          * Sprites are data containers for animations
@@ -22,7 +22,10 @@
             this.speed = 0;
             this.jumpheight = 0;
             this.grounded = false;
+            this.control = "none";
+            this.animator = "normal";
 
+            this.flip = false;
             this.current = "none";
             this.duration = 0;  //duration it's been in this animation
             this.frame = 0;     //which frame it currently is in
@@ -30,7 +33,7 @@
         }
 
         Sprite.prototype.getModel = function(){
-            return modelMap[ this.model ];
+            return lilModels( this.model );
         };
 
         Sprite.prototype.animation = function( name ){
@@ -49,12 +52,22 @@
         };
 
         Sprite.prototype.draw = function(){
+
             var cell = this.getFrame()
                 .cell();
-            lilRender.drawSpriteFromCamera( cell, this.x, this.y, this.w, this.h );
+            lilRender.drawSpriteCenteredFromCamera( cell, this.x + (i/20), this.y, this.w, this.h, this.flip );
+
         };
 
         Sprite.prototype.update = function( rtms ){
+            //determine what you're going to do
+            lilControl( this.control )( this );
+            this.x += (this.mx * rtms) / 1000;
+
+            //determine animation
+            lilAnimator( this.animator )( this );
+
+            //then update animations
             this.getAnimation()
                 .progressAnimation( this, rtms );
         };
@@ -73,6 +86,22 @@
             this.model = "none";
         };
 
+        function buildSprite( ){
+            return new Sprite();
+        }
+
+        function makeModel( data ){
+            lilModels( data.name, data );
+        }
+
+        return {
+            build : buildSprite,
+            model : makeModel
+        }
+    });
+
+    module.factory( "lilModels", function( lilMapBuilder, spriteSheets, lilProgress ){
+
         /**
          * The Model a sprite uses. Basically a collection of animations, and how it accesses them.
          * @param opts
@@ -81,6 +110,7 @@
         function SpriteModel( opts ){
             this.name = "unnamed";
             this.animations = {};
+            this.logic = "none";
 
             //set options and complicated members
             for( var prop in opts ){
@@ -97,11 +127,11 @@
             }
         }
 
-        var modelMap = {
-            none : new Sprite()
-        };
-
-
+        /**
+         * An animation definition
+         * @param opts
+         * @constructor
+         */
         function Animation( opts ){
             this.name = "untitled";
             this.frames = [];
@@ -155,30 +185,43 @@
                 .cell( this.cellNumber );
         };
 
-        function registerSpriteModel( opts ){
-            var spriteDef = new SpriteModel( opts );
-            var name = spriteDef.name;
-
-            if( modelMap[ name ]){
-                throw "SpriteModel " + name + " already exists"
+        var map = lilMapBuilder(
+            {
+                name : "models",
+                set : function( data ){
+                    return new SpriteModel( data );
+                }
             }
-            modelMap[name] = spriteDef;
-        }
+        );
+        map( "none", new SpriteModel( { name : "none" } ) );
+        return map;
+    });
 
-        function buildSprite( ){
-            return new Sprite();
-        }
+    /**
+     * registers the animation logic (what animation to use)
+     */
+    module.factory( "lilAnimator", function( lilMapBuilder ){
+        var animator = lilMapBuilder( { name : "Animator" });
 
-        return {
-            build : buildSprite,
-            model : registerSpriteModel
-        }
+        animator( "none", function(){});
+        animator( "normal", function( sprite ){
+            if( sprite.mx == 0 ){
+                sprite.current = "idle";
+                sprite.frame = 0;
+                sprite.duration = 0;
+            }
+            else{
+                sprite.current = "walk";
+                sprite.flip = sprite.mx < 0;
+            }
+        });
+        return animator;
     });
 
     /**
      * Registers or returns the animation progression method
      */
-    module.factory( "lilProgress", function(){
+    module.factory( "lilProgress", function( lilMapBuilder ){
         var methods = {
             //has no animation, or visuals
             "none": function(){},
@@ -198,26 +241,29 @@
             }
         };
 
-        /**
-         * Sets or returns Progression Methods for animations.
-         * @param {String} key
-         * @param {Function} [progressMethod] Optional progression method. If passed, sets the progression method
-         * @returns {*}
-         */
-        function lilProgress( key, progressMethod ){
-            switch( arguments.length ){
-                case 2: {
-                    if( methods[key] != undefined ){ throw "Progress method of '" + key +"' already defined!"; }
-
-                    methods[key] = progressMethod; //store the method
-                    break;
-                }
-                case 1: {
-                    return methods[key];
-                }
-            }
-        }
-
+        var lilProgress = lilMapBuilder( {name : "progression methods"});
+        lilProgress( "none", methods.none );
+        lilProgress( "linear", methods.linear);
         return lilProgress;
+    });
+
+    module.factory( "lilControl", function( lilMapBuilder, lilInput ){
+        /**
+         * keyboard bases input
+         * @param {Sprite} sprite
+         */
+        var keyboard = function( sprite ){
+            var move = 0;
+            if( lilInput.left ){ move -= 1; }
+            if( lilInput.right ){ move += 1; }
+            sprite.mx = sprite.speed * move;
+        };
+
+        var none = function(){};
+        var controls = lilMapBuilder( { name : "controls"});
+        controls( "none", none );
+        controls( "keyboard", keyboard );
+
+        return controls;
     });
 })();

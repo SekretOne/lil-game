@@ -9,7 +9,7 @@
         canvasWidth :   800,
         canvasHeight :  500,
         tilesWide :     20,
-        tilesHigh :     12.5
+        tilesHigh :     10
     });
 
     lilwindow.service( "lilRender", function( lilCamera, lilCanvas ){
@@ -51,7 +51,7 @@
             lilCanvas.context.drawImage( image, dx, dy, dw, dh );
         };
 
-        this.drawSpriteFromCamera = function( cell, x, y, w, h ){
+        this.drawSpriteFromCamera = function( cell, x, y, w, h, flip ){
             var dx, dy,     // draw x coordinate and y
                 dw, dh,     // draw width and height
                 ppx, ppy;   // points per X, and Y
@@ -63,15 +63,55 @@
             dw = w * ppx;
             dh = h * ppy;
 
-            if( !window.spriteDrawn ){
-                window.spriteDrawn = true;
-                console.log( cell.x, cell.y, cell.w, cell.h, dx, dy, dw, dh );
-            }
 
-            lilCanvas.context.drawImage(
-                cell.image(),
-                cell.x, cell.y, cell.w, cell.h,
-                dx, dy, dw, dh );
+            if( flip ){
+                var context = lilCanvas.context;
+                context.save();
+                context.scale( -1, 1 );
+                context.drawImage(
+                    cell.image(),
+                    cell.x, cell.y, cell.w, cell.h,
+                    -dx-dw, dy, dw, dh );
+                context.restore();
+            }
+            else{
+                lilCanvas.context.drawImage(
+                    cell.image(),
+                    cell.x, cell.y, cell.w, cell.h,
+                    dx, dy, dw, dh );
+            }
+        };
+
+        this.drawSpriteCenteredFromCamera = function( cell, x, y, w, h, flip ){
+            var dx, dy,     // draw x coordinate and y
+                dw, dh,     // draw width and height
+                ppx, ppy;   // points per X, and Y
+            var hw = flip ? -(w >> 1) : w >> 1;  //half the width of the sprite
+
+            ppx = lilCanvas.width / lilCamera.w;
+            ppy = lilCanvas.height / lilCamera.h;
+            dx = ( x - lilCamera.x1() - hw ) * ppx;
+            dy = ( y - lilCamera.y1() ) * ppy;
+            dw = w * ppx;
+            dh = h * ppy;
+
+
+            if( flip ){
+                var context = lilCanvas.context;
+                context.save();
+                context.scale( -1, 1 );
+                context.drawImage(
+                    cell.image(),
+                    cell.x, cell.y, cell.w, cell.h,
+                    -dx, dy, dw, dh );
+                context.restore();
+            }
+            else{
+                lilCanvas.context.drawImage(
+                    cell.image(),
+                    cell.x, cell.y, cell.w, cell.h,
+                    dx, dy, dw, dh );
+            }
         };
 
         this.clearRenders = function(){
@@ -125,8 +165,15 @@
     lilwindow.factory( "lilCanvas", function( lilWinConfig ){
         function LilCanvas2() {
 
-            this.width = lilWinConfig.canvasWidth;
-            this.height = lilWinConfig.canvasHeight;
+            if( (window.innerWidth / lilWinConfig.tilesWide) < (window.innerHeight / lilWinConfig.tilesHigh) ){
+                this.width = window.innerWidth;
+                this.height = (this.width / lilWinConfig.tilesWide) * lilWinConfig.tilesHigh ;
+            }
+            else{
+                this.height = window.innerHeight;
+                this.width = (this.height / lilWinConfig.tilesHigh) * lilWinConfig.tilesWide;
+            }
+
             this.canvas = null;
 
             /**

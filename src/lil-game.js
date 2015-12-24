@@ -5,7 +5,7 @@
 (function(){
     angular.module( "lil-game", [ "lil-window", 'lil-pic', 'lil-terrain', "lil-sprite" ] )
 
-        .factory( "lilGame", function( lilRender, lilCamera, $timeout, $interval, $http, lilControl ){
+        .factory( "lilGame", function( lilRender, lilCamera, $timeout, $interval, $http ){
 
             function Game(){
                 var timing = 0;
@@ -118,54 +118,6 @@
             }
 
             return new Game();
-        })
-
-        .factory( "lilControl", function( lilCamera, $interval ){
-            var keyBindings = {
-                left : false,
-                up : false,
-                right : false,
-                down : false
-            };
-
-            var bindings = {
-                left : 37,
-                up : 38,
-                right : 39,
-                down : 40
-            };
-            console.log("BUILDING LIL CONTROL");
-
-            document.addEventListener('keydown', function(event) {
-                if(event.keyCode == bindings.left) {
-                    keyBindings.left = true;
-                }
-                else if(event.keyCode == bindings.up) {
-                    keyBindings.up = true;
-                }
-                else if(event.keyCode == bindings.right ) {
-                    keyBindings.right = true;
-                }
-                else if(event.keyCode == bindings.down ) {
-                    keyBindings.down = true;
-                }
-            });
-
-            document.addEventListener('keyup', function(event) {
-                if(event.keyCode == bindings.left) {
-                    keyBindings.left = false;
-                }
-                else if(event.keyCode == bindings.up) {
-                    keyBindings.up = false;
-                }
-                else if(event.keyCode == bindings.right) {
-                    keyBindings.right = false;
-                }
-                else if(event.keyCode == bindings.down) {
-                    keyBindings.down = false;
-                }
-            });
-            return {};
         })
 
         .factory( "lilWorldBuilder", function( ){

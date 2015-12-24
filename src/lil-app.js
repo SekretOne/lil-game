@@ -26,14 +26,17 @@
         sprite.y = 2;
         sprite.w = 2;
         sprite.h = -2;
+        sprite.speed = 5;
         sprite.current = "walk";
         sprite.model = "pauper";
+        sprite.control = "keyboard";
 
         var backdrop = {
             z: -1,
             draw: function () {
-                lilCanvas.fillStyle = 'black';
+                lilCanvas.context.fillStyle = 'black';
                 lilCanvas.context.fillRect(0, 0, lilCanvas.width, lilCanvas.height);
+                lilCanvas.context.restore();
             }
         };
 
