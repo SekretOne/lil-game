@@ -27,12 +27,13 @@
         };
 
         /**
-         * Draw all the renderables, in the proper order, onto the canvas.
+         * Draw all the renderables, in the proper order, onto the canvas. Provides a delta for interpolation
+         * @param delta
          */
-        this.draw = function(){
+        this.draw = function( delta ){
             for( var i = 0; i < renders.length; i++ ){
                 //need the camera, and the canvas
-                renders[i].draw();
+                renders[i].draw( delta );
             }
         };
 

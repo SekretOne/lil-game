@@ -58,6 +58,7 @@
                 for( var prop in bindings ){
                     if( event.keyCode == bindings[prop] ){
                         input[prop] = true;
+                        event.preventDefault();
                     }
                 }
             });
@@ -66,6 +67,7 @@
                 for( var prop in bindings ){
                     if( event.keyCode == bindings[prop] ){
                         input[prop] = false;
+                        event.preventDefault();
                     }
                 }
             });

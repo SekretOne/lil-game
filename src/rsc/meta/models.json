@@ -4,6 +4,7 @@
       "name" : "pauper",
       "w" : 2,
       "h" : -2,
+      "animator" : "normal",
 
       "animations" : [
         {

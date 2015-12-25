@@ -23,7 +23,6 @@
             this.jumpheight = 0;
             this.grounded = false;
             this.control = "none";
-            this.animator = "normal";
 
             this.flip = false;
             this.current = "none";
@@ -51,11 +50,31 @@
                 .frames[ this.frame ];
         };
 
-        Sprite.prototype.draw = function(){
+        /**
+         * Sets the current animation to the animation of that name
+         * @param {String} animation
+         * @param {Boolean} reset
+         */
+        Sprite.prototype.setAnimation = function( animation, reset ){
+            if( this.current != animation || reset ){
+                this.current = animation;
+                this.frame = 0;
+                this.duration = 0;
+            }
+        };
+
+        Sprite.prototype.draw = function( delta ){
+            var dx, dy, ix, iy;
+
+            dx = this.mx * delta;
+            dy = this.my * delta;
+
+            ix = this.x -( this.w >> 2 ) + dx;
+            iy = this.y + dy;
 
             var cell = this.getFrame()
                 .cell();
-            lilRender.drawSpriteCenteredFromCamera( cell, this.x, this.y, this.w, this.h, this.flip );
+            lilRender.drawSpriteFromCamera( cell, ix, iy, this.w, this.h, this.flip );
 
         };
 
@@ -65,7 +84,7 @@
             this.x += (this.mx * rtms) / 1000;
 
             //determine animation
-            lilAnimator( this.animator )( this );
+            lilAnimator( this.getModel().animator )( this );
 
             //then update animations
             this.getAnimation()
@@ -110,7 +129,7 @@
         function SpriteModel( opts ){
             this.name = "unnamed";
             this.animations = {};
-            this.logic = "none";
+            this.animator = "none";
 
             //set options and complicated members
             for( var prop in opts ){
@@ -179,6 +198,10 @@
             }
         }
 
+        /**
+         * Returns the SpriteCell image that is this frame
+         * @returns {SheetCell} cell image
+         */
         Frame.prototype.cell = function(){
             return spriteSheets
                 .get( this.spriteSheet)

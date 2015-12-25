@@ -100,24 +100,16 @@
             }
         });
 
-        game.preload( "Create Tile Sets", function( next ){
-            $http.get( "src/rsc/tilesets/tilesets.json").then( function( response ){
-                var tileSetsData = response.data.tileSets;
-                for( var i = 0; i < tileSetsData.length; i++ ){
-                    var tsd = tileSetsData[i];
-                    var ts = tileSetManager.tileSet( tsd.name );
+        game.get( "src/rsc/tilesets/tilesets.json", function( data ){
+            var tileSetsData = data.tileSets;
+            for( var i = 0; i < tileSetsData.length; i++ ){
+                var tsd = tileSetsData[i];
+                var ts = tileSetManager.tileSet( tsd.name );
 
-                    for( var j = 0; j < tsd.tiles.length; j++ ){
-                        ts.add( tsd.tiles[j] );
-                    }
+                for( var j = 0; j < tsd.tiles.length; j++ ){
+                    ts.add( tsd.tiles[j] );
                 }
-                next();
-            } );
-        });
-
-        game.preload( "Create Test content", function( next ){
-            //whatever... do some tests here
-            next();
+            }
         });
 
         return game;

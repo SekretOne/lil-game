@@ -12,6 +12,7 @@
 
                 this.updatesPerSecond = 50;
                 this.msPerUpdate = 1000 / this.updatesPerSecond;
+                this.lastUpdate = 0;
 
                 var self = this;
 
@@ -25,12 +26,15 @@
                         self.doRenderAndDraw.bind( self )
                     );
 
-                    $interval( self.update.bind( self ), self.msPerUpdate );
+                    $interval( self.updateWrap.bind( self ), self.msPerUpdate );
                 }
 
-                this.update = function(){
-
+                this.updateWrap = function(){
+                    this.update();
+                    this.lastUpdate = window.performance.now();
                 };
+
+                this.update = function(){};
 
                 /**
                  * Begins the game
@@ -86,10 +90,11 @@
                     var before, after;
 
                     before = window.performance.now();
+                    var delta = (before - this.lastUpdate) / 1000;
 
                     this.render();  //render all prerequisites
                     lilRender.sort();
-                    lilRender.draw();
+                    lilRender.draw( delta );
                     lilRender.clearRenders();
 
                     after = window.performance.now();
