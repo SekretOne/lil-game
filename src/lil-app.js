@@ -30,6 +30,7 @@
         sprite.current = "walk";
         sprite.model = "pauper";
         sprite.control = "keyboard";
+        sprite.physics = "noClip";
 
         var backdrop = {
             z: -1,
@@ -39,29 +40,6 @@
                 lilCanvas.context.restore();
             }
         };
-
-        game.preload( "Create World", function( next ){
-            game.world = lilWorldBuilder.build();
-
-            game.world.render = function(){
-                lilRender.add( backdrop );
-                for( var mapName in game.world.maps ){
-                    lilRender.add( game.world.maps[mapName] );
-                }
-                lilRender.add( sprite );
-            };
-
-            game.render = function(){
-                this.world.render();
-            };
-
-            game.update = function(){
-                sprite.update( lilGame.msPerUpdate );
-            };
-
-            next();
-        });
-
 
         game.get( "src/rsc/levels/level-0.json", function( data ){
             var levelData = data;
@@ -111,6 +89,24 @@
                 }
             }
         });
+
+        game.world = lilWorldBuilder.build();
+
+        game.world.render = function(){
+            lilRender.add( backdrop );
+            for( var mapName in game.world.maps ){
+                lilRender.add( game.world.maps[mapName] );
+            }
+            lilRender.add( sprite );
+        };
+
+        game.render = function(){
+            this.world.render();
+        };
+
+        game.update = function(){
+            sprite.update( lilGame.msPerUpdate );
+        };
 
         return game;
     });

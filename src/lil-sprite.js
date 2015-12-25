@@ -4,7 +4,7 @@
 (function(){
     var module = angular.module( "lil-sprite", ["lil-pic", "lil-window", "lil-core" ] );
 
-    module.factory( "lilSprite", function( lilModels, lilRender, lilControl, lilAnimator ){
+    module.factory( "lilSprite", function( lilModels, lilRender, lilControl, lilAnimator, lilPhysics ){
 
         /**
          * Sprites are data containers for animations
@@ -17,12 +17,19 @@
             this.w = 1;
             this.h = 1;
 
+            this.bbx1 = 0;
+            this.bbx2 = 0;
+            this.bby1 = 0;
+            this.bby2 = 0;
+
             this.mx = 0;  // movement speed, per second
             this.my = 0;  //
             this.speed = 0;
             this.jumpheight = 0;
             this.grounded = false;
+
             this.control = "none";
+            this.physics = "none";
 
             this.flip = false;
             this.current = "none";
@@ -81,7 +88,9 @@
         Sprite.prototype.update = function( rtms ){
             //determine what you're going to do
             lilControl( this.control )( this );
-            this.x += (this.mx * rtms) / 1000;
+
+            //do any physics
+            lilPhysics( this.physics )( this, rtms );
 
             //determine animation
             lilAnimator( this.getModel().animator )( this );
@@ -279,6 +288,14 @@
             var move = 0;
             if( lilInput.left ){ move -= 1; }
             if( lilInput.right ){ move += 1; }
+
+            //change facing
+            if( move == -1 ){
+                sprite.flip = false;
+            }
+            else if( move == 1 ){
+                sprite.flip = true;
+            }
             sprite.mx = sprite.speed * move;
         };
 
@@ -288,5 +305,75 @@
         controls( "keyboard", keyboard );
 
         return controls;
+    });
+
+    //----------------------------------------------------------------//
+    //  Physics
+    //----------------------------------------------------------------//
+
+    module.factory( "lilPhysics", function( lilMapBuilder ){
+
+        var physics = lilMapBuilder( { name : "physics"} );
+
+        var none = function(){};
+
+        var noClip = function( sprite, rtms ){
+            var delta = (rtms/1000);
+            sprite.x += sprite.mx * delta;
+            sprite.y += sprite.my * delta;
+        };
+
+        /**
+         * Normal physics. So an entity can't walk through walls, and can face a direction
+         * @param {Sprite} sprite
+         * @param {int} rtms
+         */
+        var normal = function( sprite, rtms ){
+            var delta = (rtms/1000);
+
+            var px1, px2, py1, py2; //projected space
+            var dmx, dmy;
+
+            dmx = sprite.mx * delta;
+            dmy = sprite.my * delta;
+
+            //test horizontal movement
+            if( sprite.mx != 0 ){
+                var tx1, tx2, ty1, ty2;
+
+                if( sprite.mx > 0 ){
+                    py1 = sprite.y + sprite.bby1;
+                    py2 = sprite.y + sprite.bby2;
+                    px1 = sprite.x + sprite.bbx2;
+                    px2 = sprite.x + sprite.bbx2 + dmx;
+
+                    tx1 = Math.floor( px1 );
+                    tx2 = Math.floor( px2 );
+                    ty1 = Math.floor( px1 );
+                    ty2 = Math.floor( py2 );
+
+                    var collision = false;
+                    for( var tx = tx1; tx <= tx2 && !collision ; tx++ ){
+                        for( var ty = ty1; ty <= ty2; ty++ ){
+                            //do some test on { tx, ty } test -> right
+                        }
+                    }
+
+                        if( collision ){
+                        //do a thing
+                        //ricochet if elastic
+                    }
+                }
+                else{
+                    py1 = sprite.y + sprite.bby1;
+                    py2 = sprite.y + sprite.bby2;
+                    px1 = sprite.x + sprite.bbx1;
+                    px2 = sprite.x + sprite.bbx2 + dmx;
+                }
+            }
+        };
+        physics( "none", none );
+        physics( "noClip", noClip );
+        return physics;
     });
 })();

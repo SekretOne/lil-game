@@ -43,6 +43,8 @@
                     doPreloadTasks();
                 };
 
+                this.init = function(){};
+
                 /**
                  * Performs the Preload tasks, in order, before startup.
                  */
@@ -51,6 +53,7 @@
                     $timeout( function(){
                         //or should it be like this?
                         if( _preloadTaskCounter == preloadTasks.length ){
+                            self.init();
                             actuallyStart();
                         }
                         else{

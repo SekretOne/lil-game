@@ -83,38 +83,6 @@
             }
         };
 
-        this.drawSpriteCenteredFromCamera = function( cell, x, y, w, h, flip ){
-            var dx, dy,     // draw x coordinate and y
-                dw, dh,     // draw width and height
-                ppx, ppy;   // points per X, and Y
-            var hw = flip ? -(w >> 1) : w >> 1;  //half the width of the sprite
-
-            ppx = lilCanvas.width / lilCamera.w;
-            ppy = lilCanvas.height / lilCamera.h;
-            dx = ( x - lilCamera.x1() - hw ) * ppx;
-            dy = ( y - lilCamera.y1() ) * ppy;
-            dw = w * ppx;
-            dh = h * ppy;
-
-
-            if( flip ){
-                var context = lilCanvas.context;
-                context.save();
-                context.scale( -1, 1 );
-                context.drawImage(
-                    cell.image(),
-                    cell.x, cell.y, cell.w, cell.h,
-                    -dx, dy, dw, dh );
-                context.restore();
-            }
-            else{
-                lilCanvas.context.drawImage(
-                    cell.image(),
-                    cell.x, cell.y, cell.w, cell.h,
-                    dx, dy, dw, dh );
-            }
-        };
-
         this.clearRenders = function(){
             renders = [];
         };

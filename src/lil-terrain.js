@@ -108,14 +108,6 @@
                 this.name = "";
                 this.render = "none";
 
-                /*if( opts != null ){
-                    for( var prop in opts ){
-                        if( opts.hasOwnProperty( prop )){
-                            console.log( "setting property: ", prop, opts[prop] );
-                            this[prop] = opts[prop];
-                        }
-                    }
-                }*/
                 if( opts ){ angular.extend( this, opts ); }
             }
 
