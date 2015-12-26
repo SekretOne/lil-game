@@ -62,8 +62,8 @@
 
         game.get( "src/rsc/meta/models.json", function( data){
 
-           data.models.forEach( function( spriteData ){
-               lilSprite.model( spriteData );
+           data.models.forEach( function( modelData ){
+               lilSprite.model( modelData );
            })
         });
 
@@ -105,7 +105,7 @@
         };
 
         game.update = function(){
-            sprite.update( lilGame.msPerUpdate );
+            sprite.update( game.world, lilGame.msPerUpdate );
         };
 
         return game;

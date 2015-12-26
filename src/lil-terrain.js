@@ -107,6 +107,7 @@
             function Tile( opts ){
                 this.name = "";
                 this.render = "none";
+                this.collisionType = "none";
 
                 if( opts ){ angular.extend( this, opts ); }
             }

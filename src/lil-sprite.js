@@ -30,6 +30,7 @@
 
             this.control = "none";
             this.physics = "none";
+            this.collidesWith = {};
 
             this.flip = false;
             this.current = "none";
@@ -39,7 +40,7 @@
         }
 
         Sprite.prototype.getModel = function(){
-            return lilModels( this.model );
+            return lilModels.get( this.model );
         };
 
         Sprite.prototype.animation = function( name ){
@@ -85,33 +86,19 @@
 
         };
 
-        Sprite.prototype.update = function( rtms ){
+        Sprite.prototype.update = function( world, rtms ){
             //determine what you're going to do
-            lilControl( this.control )( this );
+            lilControl.get( this.control )( this );
 
             //do any physics
-            lilPhysics( this.physics )( this, rtms );
+            lilPhysics.get( this.physics )( world, this, rtms );
 
             //determine animation
-            lilAnimator( this.getModel().animator )( this );
+            lilAnimator.get( this.getModel().animator )( this );
 
             //then update animations
             this.getAnimation()
                 .progressAnimation( this, rtms );
-        };
-
-        Sprite.prototype.clear = function(  ){
-            this.x = 0;
-            this.y = 0;
-            this.z = 1;
-            this.w = 1;
-            this.h = 1;
-            this.mx = 0;
-            this.my = 0;
-            this.current = "none";
-            this.duration = 0;  //duration it's been in this animation
-            this.frame = 0;     //which frame it currently is in
-            this.model = "none";
         };
 
         function buildSprite( ){
@@ -119,7 +106,7 @@
         }
 
         function makeModel( data ){
-            lilModels( data.name, data );
+            lilModels.load( data );
         }
 
         return {
@@ -128,7 +115,7 @@
         }
     });
 
-    module.factory( "lilModels", function( lilMapBuilder, spriteSheets, lilProgress ){
+    module.factory( "lilModels", function( lilHashMap, spriteSheets, lilProgress ){
 
         /**
          * The Model a sprite uses. Basically a collection of animations, and how it accesses them.
@@ -180,7 +167,8 @@
         }
 
         Animation.prototype.progressAnimation = function( sprite, rtms ){
-            var method = lilProgress( this.progressMethod );
+            var method;
+            method = lilProgress.get( this.progressMethod );
             method( sprite, sprite.getAnimation(), rtms );
         };
 
@@ -217,26 +205,25 @@
                 .cell( this.cellNumber );
         };
 
-        var map = lilMapBuilder(
-            {
-                name : "models",
-                set : function( data ){
-                    return new SpriteModel( data );
-                }
-            }
-        );
-        map( "none", new SpriteModel( { name : "none" } ) );
-        return map;
+        var lilModels = lilHashMap( "models" );
+
+        lilModels.load = function( data ){
+            var model = new SpriteModel( data );
+            this.add( data.name, model )
+        };
+
+        lilModels.add( "none", new SpriteModel( { name : "none" } ) );
+        return lilModels;
     });
 
     /**
      * registers the animation logic (what animation to use)
      */
-    module.factory( "lilAnimator", function( lilMapBuilder ){
-        var animator = lilMapBuilder( { name : "Animator" });
+    module.factory( "lilAnimator", function( lilHashMap ){
+        var lilAnimator = lilHashMap( "animators" );
 
-        animator( "none", function(){});
-        animator( "normal", function( sprite ){
+        lilAnimator.add( "none", function(){});
+        lilAnimator.add( "normal", function( sprite ){
             if( sprite.mx == 0 ){
                 sprite.current = "idle";
                 sprite.frame = 0;
@@ -247,13 +234,13 @@
                 sprite.flip = sprite.mx < 0;
             }
         });
-        return animator;
+        return lilAnimator;
     });
 
     /**
      * Registers or returns the animation progression method
      */
-    module.factory( "lilProgress", function( lilMapBuilder ){
+    module.factory( "lilProgress", function( lilHashMap ){
         var methods = {
             //has no animation, or visuals
             "none": function(){},
@@ -273,13 +260,17 @@
             }
         };
 
-        var lilProgress = lilMapBuilder( {name : "progression methods"});
-        lilProgress( "none", methods.none );
-        lilProgress( "linear", methods.linear);
+        var lilProgress;
+
+        console.log( "adding methods" );
+        lilProgress = lilHashMap( "progression methods")
+            .add( "none", methods.none )
+            .add( "linear", methods.linear );
+        console.log( lilProgress );
         return lilProgress;
     });
 
-    module.factory( "lilControl", function( lilMapBuilder, lilInput ){
+    module.factory( "lilControl", function( lilHashMap, lilInput ){
         /**
          * keyboard bases input
          * @param {Sprite} sprite
@@ -300,9 +291,9 @@
         };
 
         var none = function(){};
-        var controls = lilMapBuilder( { name : "controls"});
-        controls( "none", none );
-        controls( "keyboard", keyboard );
+        var controls = lilHashMap( "controls");
+        controls.add( "none", none );
+        controls.add( "keyboard", keyboard );
 
         return controls;
     });
@@ -311,13 +302,37 @@
     //  Physics
     //----------------------------------------------------------------//
 
-    module.factory( "lilPhysics", function( lilMapBuilder ){
+    module.factory( "lilPhysics", function( lilHashMap ){
 
-        var physics = lilMapBuilder( { name : "physics"} );
+        var lilPhysics = lilHashMap( "physics" );
+
+        function makeBoundingBox( box, sprite ){
+            box.x1 = sprite.x += sprite.x1;
+            box.y1 = sprite.y += sprite.y1;
+            box.x2 = sprite.x += sprite.x2;
+            box.y2 = sprite.x += sprite.y2;
+        }
+
+        function projectBox( box, p, x, y ){
+            if( x < 0 ){
+                p.p1 = box.y1;
+                p.p2 = box.y2;
+                p.start = box.x1;
+                p.stop = p.start + x;
+                p.direction = "left";
+            }
+        }
+
+        function CollisionEvent( tile, x, y, direction ){
+            this.x = x;
+            this.y = y;
+            this.tile = tile;
+            this.direction = direction;
+        }
 
         var none = function(){};
 
-        var noClip = function( sprite, rtms ){
+        var noClip = function( world, sprite, rtms ){
             var delta = (rtms/1000);
             sprite.x += sprite.mx * delta;
             sprite.y += sprite.my * delta;
@@ -356,6 +371,7 @@
                     for( var tx = tx1; tx <= tx2 && !collision ; tx++ ){
                         for( var ty = ty1; ty <= ty2; ty++ ){
                             //do some test on { tx, ty } test -> right
+
                         }
                     }
 
@@ -372,8 +388,9 @@
                 }
             }
         };
-        physics( "none", none );
-        physics( "noClip", noClip );
-        return physics;
+
+        lilPhysics.add( "none", none );
+        lilPhysics.add( "noClip", noClip );
+        return lilPhysics;
     });
 })();

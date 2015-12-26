@@ -4,36 +4,48 @@
 (function() {
     var module = angular.module("lil-core", [])
 
-        .factory( "lilMapBuilder", function(){
+        .factory( "lilHashMap", function(){
 
-            function Map( opts ){
-                this.name = "unnamed";
+            var maps =[];
+
+            function HashMap( name ){
+                this.name = name;
                 this.items = {};
-                this.overrwrite = false;
-                this.set = function( data ){
-                    return data;
-                };
-
-                var map = this;
-
-                angular.extend( this, opts );
-
-                this.cache = function( key, data ){
-                    if( arguments.length == 2 ) {
-                        if( map.items[key ] && map.overrwrite){
-                            throw "Map " + map.name + "." + key + " already exists";
-                        }
-                        map.items[key] = map.set( data );
-                    }
-                    else{
-                        return map.items[key];
-                    }
-                };
+                this.overwrite = false;
             }
 
-            return function( opts ){
-                return new Map( opts ).cache;
+            HashMap.prototype.add = function( key, item ){
+                if( !this.overwrite && this.items[key] != undefined ){
+                    throw "HashMap : " + name + "." + key + " already exists";
+                }
+
+                this.items[ key ] = item;
+                return this;
+            };
+
+            HashMap.prototype.get = function( key ){
+                return this.items[key];
+            };
+
+            HashMap.prototype.clear = function(){
+                this.items = {};
+                return this;
+            };
+
+            function build( name ){
+                if( maps[name] ){
+                    throw "HashMap : " + name + " already exists!"
+                }
+                var hashMap = new HashMap( name );
+                maps.push( hashMap );
+                return hashMap;
             }
+
+            var provider;
+            provider = build;
+            provider.maps = maps;
+
+            return provider;
         })
 
     /**
