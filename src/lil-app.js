@@ -41,7 +41,7 @@
             }
         };
 
-        game.get( "src/rsc/levels/level-0.json", function( data ){
+        game.preload( "src/rsc/levels/level-0.json", function( data ){
             var levelData = data;
 
             game.world.name = levelData.name;
@@ -60,14 +60,14 @@
             });
         });
 
-        game.get( "src/rsc/meta/models.json", function( data){
+        game.preload( "src/rsc/meta/models.json", function( data){
 
            data.models.forEach( function( modelData ){
                lilSprite.model( modelData );
            })
         });
 
-        game.get( "src/rsc/meta/pictures.json", function( data ){
+        game.preload( "src/rsc/meta/pictures.json", function( data ){
             for( var i = 0; i < data.images.length; i++ ){
                 var picData = data.images[i];
                 lilPic( picData.name, picData.src );
@@ -78,7 +78,7 @@
             }
         });
 
-        game.get( "src/rsc/tilesets/tilesets.json", function( data ){
+        game.preload( "src/rsc/tilesets/tilesets.json", function( data ){
             var tileSetsData = data.tileSets;
             for( var i = 0; i < tileSetsData.length; i++ ){
                 var tsd = tileSetsData[i];

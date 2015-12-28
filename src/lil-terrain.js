@@ -3,7 +3,7 @@
  */
 
 (function(){
-    angular.module( "lil-terrain", [ 'lil-pic' ])
+    angular.module( "lil-terrain", [ 'lil-pic', 'lil-core' ])
         .factory( "tileSetManager", function( lilCamera, tileRenderer ){
             var _tileSets = {};
 
@@ -126,6 +126,49 @@
             }
 
             return new TileSetManager();
+        })
+
+        .factory( "tileCollision", function( lilHashMap ){
+            function averageHit( a1, a2, b1, b2 ){
+                return ( Math.max( a1, a2 ) + Math.min(b1, b2) ) >> 1;
+            }
+
+            //this tile has no collision
+            var none = function(){
+                return false;
+            };
+
+            //a full solid tile
+            var solid = function( sprite, linecast, tile, x, y ){
+                if( linecast.cx > 0 ){
+                    return {
+                        hit : true,
+                        x : x,
+                        y : averageHit( linecast.y1, y, linecast.y2, y+1 )
+                    }
+                }
+                else if( linecast.cx < 0 ){
+                    return {
+                        hit : true,
+                        x : x+1,
+                        y : averageHit( linecast.y1, y, linecast.y2, y+1 )
+                    }
+                }
+                else if( linecast.cy < 0 ){
+                    return {
+                        hit : true,
+                        x : averageHit( linecast.x1, x, linecast.x2, x+1 ),
+                        y : y+1
+                    }
+                }
+                else if( linecast.cy > 0 ){
+                    return {
+                        hit : true,
+                        x : averageHit( linecast.x1, x, linecast.x2, x+1 ),
+                        y : y
+                    }
+                }
+            };
         })
 
         .factory( "tileRenderer", function( lilRender, spriteSheets ){

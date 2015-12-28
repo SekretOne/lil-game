@@ -306,6 +306,15 @@
 
         var lilPhysics = lilHashMap( "physics" );
 
+        var lineCast = {
+            x1 : 0,
+            y1 : 0,
+            x2 : 0,
+            y2 : 0,
+            cx : 0,
+            cy : 0
+        };
+
         function makeBoundingBox( box, sprite ){
             box.x1 = sprite.x += sprite.x1;
             box.y1 = sprite.y += sprite.y1;

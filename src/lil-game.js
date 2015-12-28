@@ -65,16 +65,7 @@
                     });
                 }
 
-                /**
-                 * Adds a Preload task to be performed.
-                 * @param name
-                 * @param func
-                 */
-                this.preload = function( name, func ){
-                    preloadTasks.push( new PreloadTask( name, func ));
-                };
-
-                this.get = function( resource, func ){
+                this.preload = function( resource, func ){
                     preloadTasks.push( new PreloadTask( "load resource: " + resource, function( next ){
                         $http.get( resource).then( function( response ){
                             func( response.data );
@@ -88,6 +79,9 @@
                  */
                 this.render = function(){};
 
+                /**
+                 * Wrapper method that tells the visual aspects to draw
+                 */
                 this.doRenderAndDraw = function(){
                     timing++;
                     var before, after;
